@@ -2,8 +2,8 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
-    <link rel="stylesheet" href="estilo.css"> 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/estilo.css"> 
     <title>Dados Atualizados</title>
 </head>
 <body>
@@ -12,7 +12,7 @@
 $servername = "localhost";
 $username = "root";
 $password = "";
-$dbname = "dados"; 
+$dbname = "dados";
 
 $conn = new mysqli($servername, $username, $password, $dbname);
 
@@ -21,32 +21,56 @@ if ($conn->connect_error) {
 }
 
 // Obter dados do formulário
-$nome = $_POST['nome']; 
-$idade = (int) $_POST['idade']; 
-$endereco = $_POST['endereco']; 
+$nome = $_POST['nome'];
+$idade = (int) $_POST['idade'];
+$rua = $_POST['rua'];
+$bairro = $_POST['bairro'];
+$estado = $_POST['estado'];
 $bio = $_POST['bio'];
 
-// Inserção de dados no banco de dados
-$sql = "INSERT INTO dados_perfil (nome, idade, endereco, bio) VALUES ('$nome', $idade, '$endereco', '$bio')";
+// Primeiro, vamos verificar se há registros existentes
+$sql = "SELECT id FROM dados_perfil WHERE nome = ?"; // Altere a cláusula WHERE conforme necessário
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("s", $nome);
+$stmt->execute();
+$result = $stmt->get_result();
 
-// Verificação se a inserção foi bem-sucedida
-if ($conn->query($sql) === TRUE) {
-    // Mensagem de sucesso ao atualizar dados
-    echo "<div class='success-message-wrapper'>
-            <div class='success-message'>Dados atualizados com sucesso!</div>
-          </div>";
-    
-    // Redirecionamento para a página principal após 2 segundos
-    header("Refresh: 2; url=index.php"); 
-    exit; // Termina o script após o redirecionamento
+if ($result->num_rows > 0) {
+    // Se houver registros, fazemos um UPDATE
+    $registro = $result->fetch_assoc(); // Obtém o primeiro registro
+    $id = $registro['id']; // ID do registro para ser atualizado
+
+    $update_sql = "UPDATE dados_perfil SET idade = ?, rua = ?, bairro = ?, estado = ?, bio = ? WHERE id = ?";
+    $stmt = $conn->prepare($update_sql);
+    $stmt->bind_param("issssi", $idade, $rua, $bairro, $estado, $bio, $id);
+
+    if ($stmt->execute()) {
+        echo "<div class='success-message-wrapper'>
+                <div class='success-message'>Dados atualizados com sucesso!</div>
+              </div>";
+        header("Refresh: 2; url=index.php");
+        exit;
+    } else {
+        echo "Erro ao atualizar dados: " . $stmt->error;
+    }
 } else {
-    // Mensagem de erro ao atualizar dados
-    echo "Erro ao atualizar dados: " . $conn->error;
-    
-    // Redirecionamento para a página principal após 1 segundo
-    header("Refresh: 1; url=index.php");
+    // Se não houver registros, fazemos um INSERT
+    $insert_sql = "INSERT INTO dados_perfil (nome, idade, rua, bairro, estado, bio) VALUES (?, ?, ?, ?, ?, ?)";
+    $stmt = $conn->prepare($insert_sql);
+    $stmt->bind_param("sissss", $nome, $idade, $rua, $bairro, $estado, $bio);
+
+    if ($stmt->execute()) {
+        echo "<div class='success-message-wrapper'>
+                <div class='success-message'>Dados inseridos com sucesso!</div>
+              </div>";
+        header("Refresh: 2; url=index.php");
+        exit;
+    } else {
+        echo "Erro ao inserir dados: " . $stmt->error;
+    }
 }
 
+$stmt->close();
 $conn->close();
 ?>
 

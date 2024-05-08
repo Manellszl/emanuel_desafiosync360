@@ -21,7 +21,7 @@ $resultCapa = $conn->query($sqlUltimaCapa);
 
 // Caminhos padrão para capa e imagem do usuário
 $caminhoCapa = "img/capa/iconebanner.png";
-$caminhoImagem = "img/iconeusuario.png"; 
+$caminhoImagem = "img/perfil/iconeusuario.png"; 
 
 // Se houver uma imagem de usuário, usamos o caminho obtido
 if ($resultImagem && $resultImagem->num_rows > 0) {
@@ -43,7 +43,7 @@ if ($resultCapa && $resultCapa->num_rows > 0) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hepta+Slab:wght@400&display=swap">
-    <link rel="stylesheet" href="estilo.css">
+    <link rel="stylesheet" href="css/estilo.css">
     <title>Desafio Emanuel</title>
 </head>
 
@@ -57,7 +57,7 @@ if ($resultCapa && $resultCapa->num_rows > 0) {
             <img id="foto_usuario" src="<?php echo $caminhoImagem; ?>" alt="Usuário">
         </div>
         <div class="mudafoto">
-            <img id="trocafoto" src="img/iconefoto.png" alt="Trocar foto do usuário">
+            <img id="trocafoto" src="img/perfil/iconefoto.png" alt="Trocar foto do usuário">
             <input type="button" value="Exibir Iframe" onclick="exibirIframe();" class="btniframe" />
             <p class="altfoto">Alterar</p>
         </div>
@@ -88,7 +88,7 @@ if ($resultCapa && $resultCapa->num_rows > 0) {
 
         <!-- Seção para troca de capa -->
         <div id="troca_capa">
-            <form id="trocacapa" action="uploadcapa.php" method="post" enctype="multipart/form-data">
+            <form id="trocacapa" action="uploadCapa.php" method="post" enctype="multipart/form-data">
                 <label class="labcapa" for="arquivocapa" tabindex="0">
                     <input id="arquivocapa" type="file" name="capa" accept="image/*">
                     <span id="atucapa" onclick="exibirButton();">Atualizar capa</span>
@@ -107,12 +107,14 @@ if ($resultCapa && $resultCapa->num_rows > 0) {
             $registro = $resultPerfil->fetch_assoc();
             $nome = $registro['nome'];
             $idade = $registro['idade'];
-            $endereco = $registro['endereco'];
+            $rua = $registro['rua'];
+            $bairro = $registro['bairro'];
+            $estado = $registro['estado'];
             $bio = $registro['bio'];
 
             echo "<p class='nome'>NOME: $nome</p>";
             echo "<p class='idade'>IDADE: $idade</p>";
-            echo "<p class='endereco'>ENDEREÇO: $endereco</p>";
+            echo "<p class='endereco'>ENDEREÇO: $rua, $bairro, $estado</p>";
             echo "<p class='bio'>BIO: $bio</p>";
         } else {
             echo "<p class='nreg'>Nenhum registro encontrado.</p>";
@@ -123,7 +125,7 @@ if ($resultCapa && $resultCapa->num_rows > 0) {
         ?>
 
         <!-- Formulário para atualizar dados do perfil -->
-        <form action="guardardados.php" method="post">
+        <form action="guardarDados.php" method="post">
             <p class="editar">Atualizar dados</p>
             <label for="nome">Nome</label>
             <input type="text" id="nome" name="nome" class="form-control" required>
@@ -131,8 +133,14 @@ if ($resultCapa && $resultCapa->num_rows > 0) {
             <label for="idade">Idade</label>
             <input type="number" id="idade" name="idade" class="form-control" required>
 
-            <label para="endereco">Endereço</label>
-            <input type="text" id="endereco" name="endereco" class="form-control" required>
+            <label para="rua">Rua</label>
+            <input type="text" id="rua" name="rua" class="form-control" required>
+
+            <label para="bairro">Bairro</label>
+            <input type="text" id="bairro" name="bairro" class="form-control" required>
+
+            <label para="estado">estado</label>
+            <input type="text" id="estado" name="estado" class="form-control" required>
 
             <label para="bio">Bio</label>
             <textarea id="bio" name="bio" class="form-control" required></textarea>
@@ -156,7 +164,7 @@ if ($resultCapa && $resultCapa->num_rows > 0) {
     </footer>
 
     <!-- Inclusão do arquivo JavaScript -->
-    <script src="app.js"></script>
+    <script src="js/app.js"></script>
 
 </body>
 

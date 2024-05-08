@@ -6,7 +6,9 @@ CREATE TABLE dados_perfil (
     id int PRIMARY KEY NOT NULL AUTO_INCREMENT, 
     nome varchar (50), 
     idade int, 
-    endereco varchar(100), 
+    rua varchar(50), 
+    bairro varchar(50),
+    estado varchar(25),
     bio varchar(500)
     ); 
 

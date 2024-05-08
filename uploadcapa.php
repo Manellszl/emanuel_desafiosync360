@@ -2,7 +2,7 @@
 $servername = "localhost";
 $username = "root";
 $password = "";
-$dbname = "dados";
+$dbname = "dados"; // Nome do banco de dados
 
 $conn = new mysqli($servername, $username, $password, $dbname);
 
@@ -10,45 +10,52 @@ if ($conn->connect_error) {
     die("Erro na conexão com o banco de dados: " . $conn->connect_error);
 }
 
-// Diretório onde as imagens serão armazenadas
+// Diretório onde as imagens de capa serão armazenadas
 $uploadDir = "img/capa/";
 
-// Verifica se um arquivo foi enviado e se não houve erro durante o upload
+// Verifica se um arquivo foi enviado
 if (isset($_FILES["capa"]) && $_FILES["capa"]["error"] === UPLOAD_ERR_OK) {
-    $file = $_FILES["capa"];  // Objeto que representa o arquivo carregado
-    $fileName = uniqid() . "_" . basename($file["name"]);  // Nome único para o arquivo
-    $uploadFile = $uploadDir . $fileName;  // Caminho completo para o arquivo
+    $file = $_FILES["capa"];
+    $fileName = uniqid() . "_" . basename($file["name"]);  // Nome único para evitar conflitos
+    $uploadFile = $uploadDir . $fileName;  // Caminho para onde a imagem será movida
 
-    // Cria o diretório se não existir
+    // Verifica se o diretório existe, se não, cria-o
     if (!is_dir($uploadDir)) {
         mkdir($uploadDir, 0777, true);
     }
 
-    // Move o arquivo para o diretório especificado
+    // Move o arquivo para o diretório de destino
     if (move_uploaded_file($file["tmp_name"], $uploadFile)) {
-        // Insere o caminho do arquivo no banco de dados
-        $sql = "INSERT INTO capa (caminho) VALUES (?)";  // Query para inserir o caminho
-        $stmt = $conn->prepare($sql);  // Preparação da declaração SQL
-        $stmt->bind_param("s", $uploadFile);  // Associação do parâmetro
+        // Verifica a quantidade de registros na tabela
+        $sqlCheck = "SELECT COUNT(*) AS count FROM capa";  // Consulta para contar os registros
+        $result = $conn->query($sqlCheck);
+        $count = ($result->num_rows > 0) ? $result->fetch_assoc()["count"] : 0;
 
-        // Verifica se a operação foi bem-sucedida
-        if ($stmt->execute()) {
-            echo "Foto atualizada com sucesso!";
-            header("Refresh: 0; url=index.php"); // Redireciona para a página principal
-
-        } else {
-            echo "Erro ao salvar o caminho da imagem no banco de dados.";
-            header("Refresh: 1; url=index.php");
+        if ($count == 0) {  // Se não houver registros, insere
+            $sql = "INSERT INTO capa (caminho) VALUES (?)";
+        } else {  // Se houver registros, atualiza
+            $sql = "UPDATE capa SET caminho = ? WHERE id = (SELECT MIN(id) FROM capa)";
         }
 
-        $stmt->close();  // Fecha a instrução preparada
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("s", $uploadFile);
+
+        if ($stmt->execute()) {
+            echo "Capa atualizada com sucesso!";
+            echo "<script>setTimeout(function() { window.location.href = 'index.php'; }, 1);</script>";
+        } else {
+            echo "Erro ao atualizar o banco de dados.";
+            echo "<script>setTimeout(function() { window.location.href = 'index.php'; }, 2);</script>";  
+        }
+
+        $stmt->close(); 
     } else {
         echo "Erro ao mover a imagem para o diretório.";
-        header("Refresh: 1; url=index.php");
+        echo "<script>setTimeout(function() { window.location.href = 'index.php'; }, 2);</script>";
     }
 } else {
     echo "Nenhum arquivo foi enviado ou ocorreu um erro.";
-    header("Refresh: 1; url=index.php");
+    echo "<script>setTimeout(function() { window.location.href = 'index.php'; }, 2);</script>";
 }
 
 $conn->close(); 
